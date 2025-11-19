@@ -55,10 +55,19 @@
 
   <div>
     <h2>Step 2: Simulate Transactions</h2>
-    <button onclick="simulateSmallSwap()">Simulate Small Swap (LOW Risk)</button>
-    <button onclick="simulateLargeSwap()">Simulate Large Swap (MEDIUM Risk)</button>
-    <button onclick="simulateHighGasSwap()">Simulate High Gas Swap (MEDIUM Risk)</button>
-    <button onclick="simulateNormalTx()">Simulate Normal Transfer (LOW Risk)</button>
+    
+    <h3 style="color: #44ff44; margin-top: 20px;">🟢 LOW Risk Examples</h3>
+    <button onclick="simulateSmallSwap()">Small Swap (0.1 ETH)</button>
+    <button onclick="simulateNormalTx()">Normal ETH Transfer</button>
+    
+    <h3 style="color: #ffaa00; margin-top: 20px;">🟡 MEDIUM Risk Examples</h3>
+    <button onclick="simulateMediumSwap()">Medium Swap (2 ETH)</button>
+    <button onclick="simulateHighGasSwap()">High Gas Swap (150 gwei)</button>
+    
+    <h3 style="color: #ff4444; margin-top: 20px;">🔴 HIGH Risk Examples</h3>
+    <button onclick="simulateVeryLargeSwap()">Very Large Swap (10 ETH)</button>
+    <button onclick="simulateExtremeGasSwap()">Extreme Gas Swap (500 gwei)</button>
+    <button onclick="simulateLargeWithHighGas()">Large + High Gas (5 ETH, 200 gwei)</button>
   </div>
 
   <div>
@@ -130,7 +139,7 @@
         to: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // Uniswap V2 Router
         value: '0x16345785D8A0000', // 0.1 ETH
         data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
-      }, 'Small DEX Swap (0.1 ETH) - Should show LOW risk');
+      }, '🟢 Small DEX Swap (0.1 ETH) - Should show LOW risk');
     }
 
     function simulateLargeSwap() {
@@ -157,7 +166,47 @@
         from: '0x0000000000000000000000000000000000000000',
         to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0', // Random address (not a DEX)
         value: '0xDE0B6B3A7640000', // 1 ETH
-      }, 'Normal ETH Transfer - Should show LOW risk');
+      }, '🟢 Normal ETH Transfer - Should show LOW risk');
+    }
+
+    // MEDIUM RISK examples
+    function simulateMediumSwap() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // Uniswap V2 Router
+        value: '0x1BC16D674EC80000', // 2 ETH
+        data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      }, '🟡 Medium Swap (2 ETH) - Should show MEDIUM risk');
+    }
+
+    // HIGH RISK examples
+    function simulateVeryLargeSwap() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F', // SushiSwap Router
+        value: '0x8AC7230489E80000', // 10 ETH - Exactly at HIGH threshold
+        data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      }, '🔴 Very Large Swap (10 ETH) - Should show HIGH risk');
+    }
+
+    function simulateExtremeGasSwap() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0xE592427A0AEce92De3Edee1F18E0157C05861564', // Uniswap V3 Router
+        value: '0xDE0B6B3A7640000', // 1 ETH
+        maxFeePerGas: '0x746A528800', // 500 gwei - Exactly at HIGH threshold
+        data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      }, '🔴 Extreme Gas Swap (500 gwei) - Should show HIGH risk');
+    }
+
+    function simulateLargeWithHighGas() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // Uniswap V2 Router
+        value: '0x4563918244F40000', // 5 ETH - At combo threshold
+        maxFeePerGas: '0x2E90EDD000', // 200 gwei - At combo threshold
+        data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      }, '🔴 Large Swap + High Gas (5 ETH, 200 gwei) - Should show HIGH risk');
     }
 
     // Auto-check on load

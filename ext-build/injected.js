@@ -30,49 +30,43 @@
     if (isSwapTransaction(tx)) {
       risk.factors.push('DEX swap detected');
       
-      // Large value = higher risk
       const value = parseInt(tx.value || '0x0', 16);
-      if (value > 1e18) { // > 1 ETH
+      const gasPrice = tx.maxFeePerGas || tx.gasPrice;
+      const gasPriceWei = gasPrice ? parseInt(gasPrice, 16) : 0;
+
+      // MEDIUM RISK: Value between 1-10 ETH
+      if (value >= 1e18 && value < 10e18) {
         risk.level = 'MEDIUM';
-        risk.factors.push('Large transaction value');
+        risk.factors.push('Medium transaction value (1-10 ETH)');
       }
 
-      // Very large value = HIGH risk
-      if (value > 10e18) { // > 10 ETH
+      // MEDIUM RISK: Gas price 100-500 gwei
+      if (gasPriceWei >= 100e9 && gasPriceWei < 500e9) {
+        risk.level = 'MEDIUM';
+        risk.factors.push('High gas price (100-500 gwei) - may attract MEV');
+      }
+
+      // HIGH RISK: Very large value (>= 10 ETH)
+      if (value >= 10e18) {
         risk.level = 'HIGH';
-        risk.factors.push('Very large transaction value - prime target for sandwich attacks');
+        risk.factors.push('Very large transaction value (>= 10 ETH) - prime target for sandwich attacks');
       }
 
-      // Check gas price - very high gas = potential front-running
-      if (tx.gasPrice || tx.maxFeePerGas) {
-        const gasPrice = parseInt(tx.maxFeePerGas || tx.gasPrice || '0x0', 16);
-        if (gasPrice > 100e9) { // > 100 gwei
-          risk.level = 'MEDIUM';
-          risk.factors.push('High gas price - may attract MEV');
-        }
-        
-        // Extremely high gas = HIGH risk
-        if (gasPrice > 500e9) { // > 500 gwei
-          risk.level = 'HIGH';
-          risk.factors.push('Extremely high gas price - major MEV bait');
-        }
+      // HIGH RISK: Extremely high gas (>= 500 gwei)
+      if (gasPriceWei >= 500e9) {
+        risk.level = 'HIGH';
+        risk.factors.push('Extremely high gas price (>= 500 gwei) - major MEV bait');
       }
 
-      // Combination of large value + high gas = HIGH risk
-      if (value > 5e18 && tx.maxFeePerGas && parseInt(tx.maxFeePerGas, 16) > 200e9) {
+      // HIGH RISK: Combination of large value (>= 5 ETH) + high gas (>= 200 gwei)
+      if (value >= 5e18 && gasPriceWei >= 200e9) {
         risk.level = 'HIGH';
         risk.factors.push('Large value with high gas - critical sandwich risk');
       }
 
-      // No slippage protection in data = HIGH risk
+      // Slippage warning
       if (tx.data && tx.data.length > 10) {
         risk.factors.push('Swap transaction - verify slippage settings');
-        
-        // If it's a large swap, lack of slippage check is HIGH risk
-        if (value > 1e18) {
-          risk.level = 'HIGH';
-          risk.factors.push('Large swap without visible slippage protection - HIGH RISK');
-        }
       }
     }
 
