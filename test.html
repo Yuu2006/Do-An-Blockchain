@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sandwich Detector Test Page</title>
+  <style>
+    body {
+      font-family: system-ui;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      background: #2172E5;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #1a5bb8;
+    }
+    .log {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      margin: 5px 0;
+      padding: 5px;
+      border-left: 3px solid #2172E5;
+      padding-left: 10px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    .warning { color: orange; }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Sandwich Detector - Test Page</h1>
+  <p>Use this page to test your extension without needing real tokens!</p>
+
+  <div>
+    <h2>Step 1: Check Extension Status</h2>
+    <button onclick="checkExtension()">Check if Extension is Loaded</button>
+    <button onclick="checkEthereumHook()">Check if Ethereum Hook Works</button>
+  </div>
+
+  <div>
+    <h2>Step 2: Simulate Transactions</h2>
+    <button onclick="simulateSmallSwap()">Simulate Small Swap (LOW Risk)</button>
+    <button onclick="simulateLargeSwap()">Simulate Large Swap (MEDIUM Risk)</button>
+    <button onclick="simulateHighGasSwap()">Simulate High Gas Swap (MEDIUM Risk)</button>
+    <button onclick="simulateNormalTx()">Simulate Normal Transfer (LOW Risk)</button>
+  </div>
+
+  <div>
+    <h2>Step 3: Check Extension Popup</h2>
+    <p>After simulating a transaction, click the extension icon in your toolbar to see the results!</p>
+  </div>
+
+  <div class="log" id="log">
+    <div class="log-entry">Console output will appear here...</div>
+  </div>
+
+  <script>
+    const log = document.getElementById('log');
+
+    function addLog(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.insertBefore(entry, log.firstChild);
+    }
+
+    function checkExtension() {
+      addLog('Checking extension status...', 'info');
+      
+      if (!window.ethereum) {
+        addLog('❌ MetaMask or wallet not found!', 'error');
+        return;
+      }
+      addLog('✅ Ethereum provider found', 'success');
+
+      // Check if our hook is active
+      const requestStr = window.ethereum.request.toString();
+      if (requestStr.includes('SD_INTERCEPT') || requestStr.includes('SandwichDetector')) {
+        addLog('✅ Sandwich Detector is ACTIVE and hooking transactions!', 'success');
+      } else {
+        addLog('⚠️ Sandwich Detector hook not detected. Extension may not be loaded.', 'warning');
+      }
+    }
+
+    function checkEthereumHook() {
+      addLog('Testing ethereum hook...', 'info');
+      console.log('ethereum.request function:', window.ethereum.request.toString());
+      addLog('Check browser console (F12) for detailed function output', 'info');
+    }
+
+    async function simulateTransaction(txParams, description) {
+      addLog(`🧪 Simulating: ${description}`, 'info');
+      
+      try {
+        // This will trigger our detector but fail at the wallet level
+        // That's expected and fine for testing!
+        await window.ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [txParams]
+        });
+      } catch (error) {
+        // Expected to fail - we're not actually sending a transaction
+        if (error.code === 4001) {
+          addLog(`✅ Transaction intercepted! (User rejection is normal for test)`, 'success');
+        } else {
+          addLog(`✅ Transaction intercepted! Check popup for results. Error: ${error.message}`, 'success');
+        }
+      }
+    }
+
+    function simulateSmallSwap() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D', // Uniswap V2 Router
+        value: '0x16345785D8A0000', // 0.1 ETH
+        data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      }, 'Small DEX Swap (0.1 ETH) - Should show LOW risk');
+    }
+
+    function simulateLargeSwap() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F', // SushiSwap Router
+        value: '0x3635C9ADC5DEA00000', // 1000 ETH - Large amount!
+        data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      }, 'Large DEX Swap (1000 ETH) - Should show MEDIUM/HIGH risk');
+    }
+
+    function simulateHighGasSwap() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0xE592427A0AEce92De3Edee1F18E0157C05861564', // Uniswap V3 Router
+        value: '0xDE0B6B3A7640000', // 1 ETH
+        maxFeePerGas: '0x3B9ACA00', // 1000 gwei - Very high!
+        data: '0x7ff36ab5000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+      }, 'High Gas Price Swap - Should show MEDIUM risk (MEV bait)');
+    }
+
+    function simulateNormalTx() {
+      simulateTransaction({
+        from: '0x0000000000000000000000000000000000000000',
+        to: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0', // Random address (not a DEX)
+        value: '0xDE0B6B3A7640000', // 1 ETH
+      }, 'Normal ETH Transfer - Should show LOW risk');
+    }
+
+    // Auto-check on load
+    setTimeout(checkExtension, 1000);
+  </script>
+</body>
+</html>

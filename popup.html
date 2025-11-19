@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sandwich Detector</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      width: 400px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      font-size: 14px;
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+    }
+    .subtitle {
+      margin: 0 0 16px 0;
+      color: #666;
+      font-size: 12px;
+    }
+    .tx-card {
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8f8f8;
+      border: 2px solid #ccc;
+      margin-bottom: 12px;
+    }
+    .tx-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .risk-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .risk-low { background: #44ff44; }
+    .risk-medium { background: #ffaa00; }
+    .risk-high { background: #ff4444; }
+    .tx-details {
+      font-size: 12px;
+      color: #333;
+    }
+    .tx-details div {
+      margin: 4px 0;
+    }
+    .risk-factors {
+      margin-top: 8px;
+    }
+    .risk-factors ul {
+      margin: 4px 0;
+      padding-left: 20px;
+    }
+    .empty-state {
+      padding: 20px;
+      text-align: center;
+      color: #888;
+      background: #f8f8f8;
+      border-radius: 8px;
+    }
+    .history {
+      margin-top: 12px;
+    }
+    .history-item {
+      padding: 6px;
+      margin-top: 4px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      font-size: 11px;
+      border-left: 3px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Sandwich Detector</h1>
+  <p class="subtitle">Monitoring DEX transactions for sandwich attack risks</p>
+  
+  <div id="content">
+    <div class="empty-state">
+      No transactions detected yet.<br>
+      <small>Visit Uniswap or SushiSwap to start monitoring.</small>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
